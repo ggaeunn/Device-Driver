@@ -1,0 +1,48 @@
+#include <linux/proc_fs.h>
+
+struct proc_dir_entry *keyledproc_root_fp   = NULL;
+struct proc_dir_entry *keyledproc_led_fp    = NULL;
+static char  proc_led_no = 0;
+
+static int read_ledproc_val( char *page, char **start, off_t off,int count,int *eof, void *data_unused )
+{
+	char *buf;
+	char *realdata;
+	realdata = (char *) data_unused;
+	buf = page;
+	proc_led_no = led_read();
+	buf += sprintf( buf, "%d\n",  proc_led_no);
+	*eof = 1;
+	return buf - page;
+}
+static int write_ledproc_val( struct file *file, const char __user *buffer, unsigned long count, void *data)
+{
+	int   len;
+	char *realdata;
+	realdata = (char *) data;
+	if (copy_from_user(realdata, buffer, count)) return -EFAULT;
+	realdata[count] = '\0';
+	len = strlen(realdata);
+	if (realdata[len-1] == '\n')  realdata[--len] = 0;
+	proc_led_no =  simple_strtoul( realdata, NULL, 10 );
+//	printk("proc test : %ld,%d,%d, %s\n",count,len,proc_led_no,realdata);
+	led_write(proc_led_no);
+	return count;
+}
+static void mkproc(void)
+{
+	keyledproc_root_fp  = proc_mkdir( "keyled", 0 );
+
+	keyledproc_led_fp   = create_proc_entry( "led", S_IFREG | S_IRWXU, keyledproc_root_fp );
+	if( keyledproc_led_fp )
+	{
+		keyledproc_led_fp->data       = &proc_led_no;
+		keyledproc_led_fp->read_proc  = read_ledproc_val;
+		keyledproc_led_fp->write_proc = write_ledproc_val;
+	}
+}
+static void rmproc(void)
+{
+	remove_proc_entry( "led"  , keyledproc_root_fp );
+	remove_proc_entry( "keyled" , 0 );
+}

@@ -1,0 +1,2 @@
+/home/ubuntu/udoo_linux_bsp/drivers/p306_ledkey_ioctl_rw_k/p306_ledkey_ioctl_rw/ioctl_dev.ko
+/home/ubuntu/udoo_linux_bsp/drivers/p306_ledkey_ioctl_rw_k/p306_ledkey_ioctl_rw/ioctl_dev.o
